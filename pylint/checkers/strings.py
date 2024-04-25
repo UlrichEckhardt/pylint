@@ -909,17 +909,13 @@ class StringConstantChecker(BaseTokenChecker, BaseRawFileChecker):
                     )
 
     def process_string_token(self, token: str, start_row: int, start_col: int) -> None:
-        quote_char = None
-        for _index, char in enumerate(token):
-            if char in "'\"":
-                quote_char = char
+        for _index, quote_char in enumerate(token):
+            if quote_char in "'\"":
                 break
-        if quote_char is None:
+        else:
             return
-        # pylint: disable=undefined-loop-variable
         prefix = token[:_index].lower()  # markers like u, b, r.
         after_prefix = token[_index:]
-        # pylint: enable=undefined-loop-variable
         # Chop off quotes
         quote_length = (
             3 if after_prefix[:3] == after_prefix[-3:] == 3 * quote_char else 1
