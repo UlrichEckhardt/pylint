@@ -49,7 +49,10 @@ class PyLinterMessageSink:
 
 
 @functools.total_ordering
-class BaseChecker(_ArgumentsProvider):
+class BaseChecker(
+    _ArgumentsProvider,
+    PyLinterMessageSink
+):
     # checker name (you may reuse an existing one)
     name: str = ""
     # messages issued by this checker
