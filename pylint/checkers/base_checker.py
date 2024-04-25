@@ -53,6 +53,7 @@ class BaseChecker(
     _ArgumentsProvider,
     PyLinterMessageSink
 ):
+    message_sink: PyLinterMessageSink
     # checker name (you may reuse an existing one)
     name: str = ""
     # messages issued by this checker
@@ -66,7 +67,7 @@ class BaseChecker(
         """Checker instances should have the linter as argument."""
         if self.name is not None:
             self.name = self.name.lower()
-        self.linter = linter
+        self.message_sink = linter
         _ArgumentsProvider.__init__(self, linter)
 
     def __gt__(self, other: Any) -> bool:
@@ -168,7 +169,7 @@ class BaseChecker(
         end_lineno: int | None = None,
         end_col_offset: int | None = None,
     ) -> None:
-        self.linter.add_message(
+        self.message_sink.add_message(
             msgid, line, node, args, confidence, col_offset, end_lineno, end_col_offset
         )
 
