@@ -31,6 +31,23 @@ if TYPE_CHECKING:
     from pylint.lint import PyLinter
 
 
+class PyLinterMessageSink:
+    @abc.abstractmethod
+    def add_message(
+        self,
+        msgid: str,
+        line: int | None = None,
+        node: nodes.NodeNG | None = None,
+        args: Any = None,
+        confidence: Confidence | None = None,
+        col_offset: int | None = None,
+        end_lineno: int | None = None,
+        end_col_offset: int | None = None,
+    ) -> None:
+        """Should be overridden by subclasses."""
+        raise NotImplementedError()
+
+
 @functools.total_ordering
 class BaseChecker(_ArgumentsProvider):
     # checker name (you may reuse an existing one)
