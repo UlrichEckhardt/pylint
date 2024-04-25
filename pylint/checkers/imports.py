@@ -333,6 +333,7 @@ class ImportsChecker(DeprecatedMixin, BaseChecker):
     * uses of modules instead of preferred modules
     """
 
+    linter: PyLinter
     name = "imports"
     msgs = {**DeprecatedMixin.DEPRECATED_MODULE_MESSAGE, **MSGS}
     default_deprecated_modules = ()
@@ -444,7 +445,8 @@ class ImportsChecker(DeprecatedMixin, BaseChecker):
     )
 
     def __init__(self, linter: PyLinter) -> None:
-        BaseChecker.__init__(self, linter)
+        super().__init__(linter)
+        self.linter = linter
         self.import_graph: defaultdict[str, set[str]] = defaultdict(set)
         self._imports_stack: list[tuple[ImportNode, str]] = []
         self._first_non_import_node = None
