@@ -377,6 +377,7 @@ class PyLinter(
     _MessageStateHandler,
     reporters.ReportsHandlerMixIn,
     checkers.BaseChecker,
+    checkers.PyLinterMessageSink,
 ):
     """Lint Python modules using external checkers.
 
