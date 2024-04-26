@@ -365,7 +365,8 @@ class PyLinter(
         )
 
         # Attributes related to registering messages and their handling
-        self.msgs_store = MessageDefinitionStore(self.config.py_version)
+        config = self.config
+        self.msgs_store = MessageDefinitionStore(config.py_version)
         self.msg_status = 0
         self._by_id_managed_msgs: list[ManagedMessage] = []
 
