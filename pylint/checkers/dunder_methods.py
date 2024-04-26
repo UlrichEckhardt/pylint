@@ -44,10 +44,14 @@ class DunderCallChecker(BaseChecker):
     }
     options = ()
 
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self._config = linter.config
+
     def open(self) -> None:
         self._dunder_methods: dict[str, str] = {}
         for since_vers, dunder_methods in DUNDER_METHODS.items():
-            if since_vers <= self.linter.config.py_version:
+            if since_vers <= self._config.py_version:
                 self._dunder_methods.update(dunder_methods)
 
     @staticmethod

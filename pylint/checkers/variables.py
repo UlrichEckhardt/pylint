@@ -1321,6 +1321,7 @@ class VariablesChecker(BaseChecker):
 
     def __init__(self, linter: PyLinter) -> None:
         super().__init__(linter)
+        self.linter: PyLinter = linter
         self._to_consume: list[NamesConsumer] = []
         self._type_annotation_names: list[str] = []
         self._except_handler_names_queue: list[

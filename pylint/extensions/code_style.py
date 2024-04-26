@@ -98,13 +98,17 @@ class CodeStyleChecker(BaseChecker):
         ),
     )
 
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self._config = linter.config
+
     def open(self) -> None:
-        py_version = self.linter.config.py_version
+        py_version = self._config.py_version
         self._py36_plus = py_version >= (3, 6)
         self._py38_plus = py_version >= (3, 8)
         self._max_length: int = (
-            self.linter.config.max_line_length_suggestions
-            or self.linter.config.max_line_length
+            self._config.max_line_length_suggestions
+            or self._config.max_line_length
         )
 
     @only_required_for_messages("prefer-typing-namedtuple")

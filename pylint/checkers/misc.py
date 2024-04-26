@@ -33,11 +33,15 @@ class ByIdManagedMessagesChecker(BaseRawFileChecker):
     }
     options = ()
 
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self._linter: PyLinter = linter
+
     def _clear_by_id_managed_msgs(self) -> None:
-        self.linter._by_id_managed_msgs.clear()
+        self._linter._by_id_managed_msgs.clear()
 
     def _get_by_id_managed_msgs(self) -> list[ManagedMessage]:
-        return self.linter._by_id_managed_msgs
+        return self._linter._by_id_managed_msgs
 
     def process_module(self, node: nodes.Module) -> None:
         """Inspect the source file to find messages activated or deactivated by id."""
@@ -92,12 +96,16 @@ class EncodingChecker(BaseTokenChecker, BaseRawFileChecker):
         ),
     )
 
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self._linter: PyLinter = linter
+
     def open(self) -> None:
         super().open()
 
-        notes = "|".join(re.escape(note) for note in self.linter.config.notes)
-        if self.linter.config.notes_rgx:
-            regex_string = rf"#\s*({notes}|{self.linter.config.notes_rgx})(?=(:|\s|\Z))"
+        notes = "|".join(re.escape(note) for note in self._linter.config.notes)
+        if self._linter.config.notes_rgx:
+            regex_string = rf"#\s*({notes}|{self._linter.config.notes_rgx})(?=(:|\s|\Z))"
         else:
             regex_string = rf"#\s*({notes})(?=(:|\s|\Z))"
 
@@ -130,7 +138,7 @@ class EncodingChecker(BaseTokenChecker, BaseRawFileChecker):
 
     def process_tokens(self, tokens: list[tokenize.TokenInfo]) -> None:
         """Inspect the source to find fixme problems."""
-        if not self.linter.config.notes:
+        if not self._linter.config.notes:
             return
         for token_info in tokens:
             if token_info.type != tokenize.COMMENT:

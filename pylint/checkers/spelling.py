@@ -291,16 +291,20 @@ class SpellingChecker(BaseTokenChecker):
         ),
     )
 
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self._config = linter.config
+
     def open(self) -> None:
         self.initialized = False
         if not PYENCHANT_AVAILABLE:
             return
-        dict_name = self.linter.config.spelling_dict
+        dict_name = self._config.spelling_dict
         if not dict_name:
             return
 
         self.ignore_list = [
-            w.strip() for w in self.linter.config.spelling_ignore_words.split(",")
+            w.strip() for w in self._config.spelling_ignore_words.split(",")
         ]
         # "param" appears in docstring in param description and
         # "pylint" appears in comments in pylint pragmas.
@@ -308,17 +312,17 @@ class SpellingChecker(BaseTokenChecker):
 
         self.ignore_comment_directive_list = [
             w.strip()
-            for w in self.linter.config.spelling_ignore_comment_directives.split(",")
+            for w in self._config.spelling_ignore_comment_directives.split(",")
         ]
 
-        if self.linter.config.spelling_private_dict_file:
+        if self._config.spelling_private_dict_file:
             self.spelling_dict = enchant.DictWithPWL(
-                dict_name, self.linter.config.spelling_private_dict_file
+                dict_name, self._config.spelling_private_dict_file
             )
         else:
             self.spelling_dict = enchant.Dict(dict_name)
 
-        if self.linter.config.spelling_store_unknown_words:
+        if self._config.spelling_store_unknown_words:
             self.unknown_words: set[str] = set()
 
         self.tokenizer = get_tokenizer(
@@ -390,10 +394,10 @@ class SpellingChecker(BaseTokenChecker):
                 continue
 
             # Store word to private dict or raise a message.
-            if self.linter.config.spelling_store_unknown_words:
+            if self._config.spelling_store_unknown_words:
                 if lower_cased_word not in self.unknown_words:
                     with open(
-                        self.linter.config.spelling_private_dict_file,
+                        self._config.spelling_private_dict_file,
                         "a",
                         encoding="utf-8",
                     ) as f:
@@ -402,7 +406,7 @@ class SpellingChecker(BaseTokenChecker):
             else:
                 # Present up to N suggestions.
                 suggestions = self.spelling_dict.suggest(word)
-                del suggestions[self.linter.config.max_spelling_suggestions :]
+                del suggestions[self._config.max_spelling_suggestions :]
                 line_segment = line[word_start_at:]
                 match = re.search(rf"(\W|^)({word})(\W|$)", line_segment)
                 if match:

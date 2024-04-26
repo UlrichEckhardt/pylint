@@ -850,17 +850,18 @@ a metaclass class method.",
 
     def __init__(self, linter: PyLinter) -> None:
         super().__init__(linter)
+        self._linter: PyLinter = linter
         self._accessed = ScopeAccessMap()
         self._first_attrs: list[str | None] = []
 
     def open(self) -> None:
-        self._mixin_class_rgx = self.linter.config.mixin_class_rgx
-        py_version = self.linter.config.py_version
+        self._mixin_class_rgx = self._linter.config.mixin_class_rgx
+        py_version = self._linter.config.py_version
         self._py38_plus = py_version >= (3, 8)
 
     @cached_property
     def _dummy_rgx(self) -> Pattern[str]:
-        return self.linter.config.dummy_variables_rgx  # type: ignore[no-any-return]
+        return self._linter.config.dummy_variables_rgx  # type: ignore[no-any-return]
 
     @only_required_for_messages(
         "abstract-method",
@@ -1198,7 +1199,7 @@ a metaclass class method.",
         # check access to existent members on non metaclass classes
         if (
             "attribute-defined-outside-init"
-            in self.linter.config.ignored_checks_for_mixins
+            in self._linter.config.ignored_checks_for_mixins
             and self._mixin_class_rgx.match(cnode.name)
         ):
             # We are in a mixin class. No need to try to figure out if
@@ -1210,9 +1211,9 @@ a metaclass class method.",
         if cnode.type != "metaclass":
             self._check_accessed_members(cnode, accessed)
         # checks attributes are defined in an allowed method such as __init__
-        if not self.linter.is_message_enabled("attribute-defined-outside-init"):
+        if not self._linter.is_message_enabled("attribute-defined-outside-init"):
             return
-        defining_methods = self.linter.config.defining_attr_methods
+        defining_methods = self._linter.config.defining_attr_methods
         current_module = cnode.root()
         for attr, nodes_lst in cnode.instance_attrs.items():
             # Exclude `__dict__` as it is already defined.
@@ -1696,7 +1697,7 @@ a metaclass class method.",
         if self._uses_mandatory_method_param(node):
             self._accessed.set_accessed(node)
             return
-        if not self.linter.is_message_enabled("protected-access"):
+        if not self._linter.is_message_enabled("protected-access"):
             return
 
         self._check_protected_attribute_access(node)
@@ -1900,7 +1901,7 @@ a metaclass class method.",
 
         if (
             not is_attr_protected(attrname)
-            or attrname in self.linter.config.exclude_protected
+            or attrname in self._linter.config.exclude_protected
         ):
             return
 
@@ -1914,7 +1915,7 @@ a metaclass class method.",
         if (
             inferred
             and isinstance(inferred, (nodes.ClassDef, nodes.Module))
-            and f"{inferred.name}.{attrname}" in self.linter.config.exclude_protected
+            and f"{inferred.name}.{attrname}" in self._linter.config.exclude_protected
         ):
             return
 
@@ -1981,7 +1982,7 @@ a metaclass class method.",
 
             licit_protected_member = not attrname.startswith("__")
             if (
-                not self.linter.config.check_protected_access_in_special_methods
+                not self._linter.config.check_protected_access_in_special_methods
                 and licit_protected_member
                 and self._is_called_inside_special_method(node)
             ):
@@ -2127,8 +2128,8 @@ a metaclass class method.",
         if node.type == "staticmethod":
             if (
                 first_arg == "self"
-                or first_arg in self.linter.config.valid_classmethod_first_arg
-                or first_arg in self.linter.config.valid_metaclass_classmethod_first_arg
+                or first_arg in self._linter.config.valid_classmethod_first_arg
+                or first_arg in self._linter.config.valid_metaclass_classmethod_first_arg
             ):
                 self.add_message("bad-staticmethod-argument", args=first, node=node)
                 return
@@ -2151,7 +2152,7 @@ a metaclass class method.",
             if node.type == "classmethod":
                 self._check_first_arg_config(
                     first,
-                    self.linter.config.valid_metaclass_classmethod_first_arg,
+                    self._linter.config.valid_metaclass_classmethod_first_arg,
                     node,
                     "bad-mcs-classmethod-argument",
                     node.name,
@@ -2160,7 +2161,7 @@ a metaclass class method.",
             else:
                 self._check_first_arg_config(
                     first,
-                    self.linter.config.valid_classmethod_first_arg,
+                    self._linter.config.valid_classmethod_first_arg,
                     node,
                     "bad-mcs-method-argument",
                     node.name,
@@ -2169,7 +2170,7 @@ a metaclass class method.",
         elif node.type == "classmethod" or node.name == "__class_getitem__":
             self._check_first_arg_config(
                 first,
-                self.linter.config.valid_classmethod_first_arg,
+                self._linter.config.valid_classmethod_first_arg,
                 node,
                 "bad-classmethod-argument",
                 node.name,
@@ -2231,9 +2232,9 @@ a metaclass class method.",
         """Check that the __init__ method call super or ancestors'__init__
         method (unless it is used for type hinting with `typing.overload`).
         """
-        if not self.linter.is_message_enabled(
+        if not self._linter.is_message_enabled(
             "super-init-not-called"
-        ) and not self.linter.is_message_enabled("non-parent-init-called"):
+        ) and not self._linter.is_message_enabled("non-parent-init-called"):
             return
         to_call = _ancestors_to_call(klass_node)
         not_called_yet = dict(to_call)

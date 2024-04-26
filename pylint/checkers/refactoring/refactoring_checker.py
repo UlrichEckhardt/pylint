@@ -529,6 +529,7 @@ class RefactoringChecker(checkers.BaseTokenChecker):
 
     def __init__(self, linter: PyLinter) -> None:
         super().__init__(linter)
+        self._linter: PyLinter = linter
         self._return_nodes: dict[str, list[nodes.Return]] = {}
         self._consider_using_with_stack = ConsiderUsingWithStack()
         self._init()
@@ -545,15 +546,15 @@ class RefactoringChecker(checkers.BaseTokenChecker):
     def open(self) -> None:
         # do this in open since config not fully initialized in __init__
         self._never_returning_functions = set(
-            self.linter.config.never_returning_functions
+            self._linter.config.never_returning_functions
         )
         self._suggest_join_with_non_empty_separator = (
-            self.linter.config.suggest_join_with_non_empty_separator
+            self._linter.config.suggest_join_with_non_empty_separator
         )
 
     @cached_property
     def _dummy_rgx(self) -> Pattern[str]:
-        return self.linter.config.dummy_variables_rgx  # type: ignore[no-any-return]
+        return self._linter.config.dummy_variables_rgx  # type: ignore[no-any-return]
 
     @staticmethod
     def _is_bool_const(node: nodes.Return | nodes.Assign) -> bool:
@@ -649,7 +650,7 @@ class RefactoringChecker(checkers.BaseTokenChecker):
 
     def process_tokens(self, tokens: list[tokenize.TokenInfo]) -> None:
         # Optimization flag because '_is_trailing_comma' is costly
-        trailing_comma_tuple_enabled_for_file = self.linter.is_message_enabled(
+        trailing_comma_tuple_enabled_for_file = self._linter.is_message_enabled(
             "trailing-comma-tuple"
         )
         trailing_comma_tuple_enabled_once: bool = trailing_comma_tuple_enabled_for_file
@@ -1300,11 +1301,11 @@ class RefactoringChecker(checkers.BaseTokenChecker):
     def _emit_nested_blocks_message_if_needed(
         self, nested_blocks: list[NodesWithNestedBlocks]
     ) -> None:
-        if len(nested_blocks) > self.linter.config.max_nested_blocks:
+        if len(nested_blocks) > self._linter.config.max_nested_blocks:
             self.add_message(
                 "too-many-nested-blocks",
                 node=nested_blocks[0],
-                args=(len(nested_blocks), self.linter.config.max_nested_blocks),
+                args=(len(nested_blocks), self._linter.config.max_nested_blocks),
             )
 
     def _emit_consider_using_with_if_needed(

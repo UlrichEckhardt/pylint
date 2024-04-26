@@ -164,22 +164,23 @@ class TypingChecker(BaseChecker):
     def __init__(self, linter: PyLinter) -> None:
         """Initialize checker instance."""
         super().__init__(linter=linter)
+        self._config = linter.config
         self._found_broken_callable_location: bool = False
         self._alias_name_collisions: set[str] = set()
         self._deprecated_typing_alias_msgs: list[DeprecatedTypingAliasMsg] = []
         self._consider_using_alias_msgs: list[DeprecatedTypingAliasMsg] = []
 
     def open(self) -> None:
-        py_version = self.linter.config.py_version
+        py_version = self._config.py_version
         self._py37_plus = py_version >= (3, 7)
         self._py39_plus = py_version >= (3, 9)
         self._py310_plus = py_version >= (3, 10)
 
         self._should_check_typing_alias = self._py39_plus or (
-            self._py37_plus and self.linter.config.runtime_typing is False
+            self._py37_plus and self._config.runtime_typing is False
         )
         self._should_check_alternative_union_syntax = self._py310_plus or (
-            self._py37_plus and self.linter.config.runtime_typing is False
+            self._py37_plus and self._config.runtime_typing is False
         )
 
         self._should_check_noreturn = py_version < (3, 7, 2)

@@ -203,8 +203,12 @@ class BasicErrorChecker(_BasicChecker):
         ),
     }
 
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self._linter: PyLinter = linter
+
     def open(self) -> None:
-        py_version = self.linter.config.py_version
+        py_version = self._linter.config.py_version
         self._py38_plus = py_version >= (3, 8)
 
     @utils.only_required_for_messages("function-redefined")
@@ -568,7 +572,7 @@ class BasicErrorChecker(_BasicChecker):
                     ):
                         return
 
-            dummy_variables_rgx = self.linter.config.dummy_variables_rgx
+            dummy_variables_rgx = self._linter.config.dummy_variables_rgx
             if dummy_variables_rgx and dummy_variables_rgx.match(node.name):
                 return
             self.add_message(

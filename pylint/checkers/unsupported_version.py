@@ -44,9 +44,13 @@ class UnsupportedVersionChecker(BaseChecker):
         ),
     }
 
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self._config = linter.config
+
     def open(self) -> None:
         """Initialize visit variables and statistics."""
-        py_version = self.linter.config.py_version
+        py_version = self._config.py_version
         self._py36_plus = py_version >= (3, 6)
         self._py38_plus = py_version >= (3, 8)
 

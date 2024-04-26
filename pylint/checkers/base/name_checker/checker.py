@@ -275,6 +275,7 @@ class NameChecker(_BasicChecker):
 
     def __init__(self, linter: PyLinter) -> None:
         super().__init__(linter)
+        self._linter: PyLinter = linter
         self._name_group: dict[str, str] = {}
         self._bad_names: dict[str, dict[str, list[_BadNamesTuple]]] = {}
         self._name_regexps: dict[str, re.Pattern[str]] = {}
@@ -283,8 +284,8 @@ class NameChecker(_BasicChecker):
         self._bad_names_rgxs_compiled: list[re.Pattern[str]] = []
 
     def open(self) -> None:
-        self.linter.stats.reset_bad_names()
-        for group in self.linter.config.name_group:
+        self._linter.stats.reset_bad_names()
+        for group in self._linter.config.name_group:
             for name_type in group.split(":"):
                 self._name_group[name_type] = f"group_{group}"
 
@@ -292,10 +293,10 @@ class NameChecker(_BasicChecker):
         self._name_regexps = regexps
         self._name_hints = hints
         self._good_names_rgxs_compiled = [
-            re.compile(rgxp) for rgxp in self.linter.config.good_names_rgxs
+            re.compile(rgxp) for rgxp in self._linter.config.good_names_rgxs
         ]
         self._bad_names_rgxs_compiled = [
-            re.compile(rgxp) for rgxp in self.linter.config.bad_names_rgxs
+            re.compile(rgxp) for rgxp in self._linter.config.bad_names_rgxs
         ]
 
     def _create_naming_rules(self) -> tuple[dict[str, Pattern[str]], dict[str, str]]:
@@ -305,7 +306,7 @@ class NameChecker(_BasicChecker):
         for name_type in KNOWN_NAME_TYPES:
             if name_type in KNOWN_NAME_TYPES_WITH_STYLE:
                 naming_style_name = getattr(
-                    self.linter.config, f"{name_type}_naming_style"
+                    self._linter.config, f"{name_type}_naming_style"
                 )
                 regexps[name_type] = NAMING_STYLES[naming_style_name].get_regex(
                     name_type
@@ -315,7 +316,7 @@ class NameChecker(_BasicChecker):
                 regexps[name_type] = DEFAULT_PATTERNS[name_type]
 
             custom_regex_setting_name = f"{name_type}_rgx"
-            custom_regex = getattr(self.linter.config, custom_regex_setting_name, None)
+            custom_regex = getattr(self._linter.config, custom_regex_setting_name, None)
             if custom_regex is not None:
                 regexps[name_type] = custom_regex
 
@@ -380,7 +381,7 @@ class NameChecker(_BasicChecker):
             )
 
         self._check_name(
-            _determine_function_name_type(node, config=self.linter.config),
+            _determine_function_name_type(node, config=self._linter.config),
             node.name,
             node,
             confidence,
@@ -523,7 +524,7 @@ class NameChecker(_BasicChecker):
             # prevalent group needs to be spelled out to make the message
             # correct.
             hint = f"the `{prevalent_group}` group in the {hint}"
-        if self.linter.config.include_naming_hint:
+        if self._linter.config.include_naming_hint:
             hint += f" ({self._name_regexps[node_type].pattern!r} pattern)"
         args = (
             (type_label.capitalize(), name, hint)
@@ -532,15 +533,15 @@ class NameChecker(_BasicChecker):
         )
 
         self.add_message(warning, node=node, args=args, confidence=confidence)
-        self.linter.stats.increase_bad_name(node_type, 1)
+        self._linter.stats.increase_bad_name(node_type, 1)
 
     def _name_allowed_by_regex(self, name: str) -> bool:
-        return name in self.linter.config.good_names or any(
+        return name in self._linter.config.good_names or any(
             pattern.match(name) for pattern in self._good_names_rgxs_compiled
         )
 
     def _name_disallowed_by_regex(self, name: str) -> bool:
-        return name in self.linter.config.bad_names or any(
+        return name in self._linter.config.bad_names or any(
             pattern.match(name) for pattern in self._bad_names_rgxs_compiled
         )
 
@@ -564,7 +565,7 @@ class NameChecker(_BasicChecker):
         if self._name_allowed_by_regex(name=name):
             return
         if self._name_disallowed_by_regex(name=name):
-            self.linter.stats.increase_bad_name(node_type, 1)
+            self._linter.stats.increase_bad_name(node_type, 1)
             self.add_message(
                 "disallowed-name", node=node, args=name, confidence=interfaces.HIGH
             )

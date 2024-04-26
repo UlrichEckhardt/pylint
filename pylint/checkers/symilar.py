@@ -801,11 +801,12 @@ class SimilaritiesChecker(BaseRawFileChecker, Symilar):
             linter.config,
             linter._is_one_message_enabled,
         )
+        self._linter: PyLinter = linter
 
     def open(self) -> None:
         """Init the checkers: reset linesets and statistics information."""
         self.linesets = []
-        self.linter.stats.reset_duplicated_lines()
+        self._linter.stats.reset_duplicated_lines()
 
     def process_module(self, node: nodes.Module) -> None:
         """Process a module.
@@ -814,7 +815,7 @@ class SimilaritiesChecker(BaseRawFileChecker, Symilar):
 
         stream must implement the readlines method
         """
-        if self.linter.current_name is None:
+        if self._linter.current_name is None:
             # TODO: 4.0 Fix current_name
             warnings.warn(
                 (
@@ -825,13 +826,13 @@ class SimilaritiesChecker(BaseRawFileChecker, Symilar):
                 stacklevel=2,
             )
         with node.stream() as stream:
-            self.append_stream(self.linter.current_name, stream, node.file_encoding)
+            self.append_stream(self._linter.current_name, stream, node.file_encoding)
 
     def close(self) -> None:
         """Compute and display similarities on closing (i.e. end of parsing)."""
         total = sum(len(lineset) for lineset in self.linesets)
         duplicated = 0
-        stats = self.linter.stats
+        stats = self._linter.stats
         for num, couples in self._compute_sims():
             msg = []
             lineset = start_line = end_line = None

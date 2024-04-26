@@ -43,6 +43,8 @@ def _infer_dunder_doc_attribute(
 
 
 class DocStringChecker(_BasicChecker):
+    linter: PyLinter
+
     msgs = {
         "C0112": (
             "Empty %s docstring",
@@ -99,6 +101,10 @@ class DocStringChecker(_BasicChecker):
             },
         ),
     )
+
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self.linter = linter
 
     def open(self) -> None:
         self.linter.stats.reset_undocumented()

@@ -272,14 +272,15 @@ class BasicChecker(_BasicChecker):
 
     def __init__(self, linter: PyLinter) -> None:
         super().__init__(linter)
+        self._linter: PyLinter = linter
         self._trys: list[nodes.Try]
 
     def open(self) -> None:
         """Initialize visit variables and statistics."""
-        py_version = self.linter.config.py_version
+        py_version = self._linter.config.py_version
         self._py38_plus = py_version >= (3, 8)
         self._trys = []
-        self.linter.stats.reset_node_count()
+        self._linter.stats.reset_node_count()
 
     @utils.only_required_for_messages(
         "using-constant-test", "missing-parentheses-for-call-in-test"
@@ -414,13 +415,13 @@ class BasicChecker(_BasicChecker):
 
     def visit_module(self, _: nodes.Module) -> None:
         """Check module name, docstring and required arguments."""
-        self.linter.stats.node_count["module"] += 1
+        self._linter.stats.node_count["module"] += 1
 
     def visit_classdef(self, _: nodes.ClassDef) -> None:
         """Check module name, docstring and redefinition
         increment branch counter.
         """
-        self.linter.stats.node_count["klass"] += 1
+        self._linter.stats.node_count["klass"] += 1
 
     @utils.only_required_for_messages(
         "pointless-statement",
@@ -587,9 +588,9 @@ class BasicChecker(_BasicChecker):
         variable names, max locals.
         """
         if node.is_method():
-            self.linter.stats.node_count["method"] += 1
+            self._linter.stats.node_count["method"] += 1
         else:
-            self.linter.stats.node_count["function"] += 1
+            self._linter.stats.node_count["function"] += 1
         self._check_dangerous_default(node)
 
     visit_asyncfunctiondef = visit_functiondef
@@ -937,7 +938,7 @@ class BasicChecker(_BasicChecker):
                 )
 
     def _check_redeclared_assign_name(self, targets: list[nodes.NodeNG | None]) -> None:
-        dummy_variables_rgx = self.linter.config.dummy_variables_rgx
+        dummy_variables_rgx = self._linter.config.dummy_variables_rgx
 
         for target in targets:
             if not isinstance(target, nodes.Tuple):

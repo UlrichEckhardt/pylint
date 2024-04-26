@@ -39,8 +39,12 @@ class AsyncChecker(checkers.BaseChecker):
         ),
     }
 
+    def __init__(self, linter: PyLinter) -> None:
+        super().__init__(linter)
+        self.config = linter.config
+
     def open(self) -> None:
-        self._mixin_class_rgx = self.linter.config.mixin_class_rgx
+        self._mixin_class_rgx = self.config.mixin_class_rgx
         self._async_generators = ["contextlib.asynccontextmanager"]
 
     @checker_utils.only_required_for_messages("yield-inside-async-function")
@@ -81,7 +85,7 @@ class AsyncChecker(checkers.BaseChecker):
                         # Ignore mixin classes if they match the rgx option.
                         if (
                             "not-async-context-manager"
-                            in self.linter.config.ignored_checks_for_mixins
+                            in self.config.ignored_checks_for_mixins
                             and self._mixin_class_rgx.match(inferred.name)
                         ):
                             continue
