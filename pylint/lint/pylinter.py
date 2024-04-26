@@ -250,10 +250,30 @@ MSGS: dict[str, MessageDefinitionTuple] = {
     ),
 }
 
+class _BaselineManager:
+    # TODO: use file name in addition to module name and message ID as key
+    _baseline: dict[tuple[str, str], int] = {}
+
+    def init_baseline(self, baseline_file: Path) -> None:
+        pass
+
+    def match_baseline(self, name, msgid) -> Bool:
+        key = (self.current_name, msgid)
+        try:
+            self._baseline[key] -= 1
+            if self._baseline[key] == 0:
+                del self._baseline[key]
+            return True
+        except KeyError:
+            return False
+
+    def fetch_unmatched_baseline_messages(self):
+        pass
 
 # pylint: disable=too-many-instance-attributes,too-many-public-methods
 class PyLinter(
     _ArgumentsManager,
+    _BaselineManager,
     _MessageStateHandler,
     reporters.ReportsHandlerMixIn,
     checkers.BaseChecker,
@@ -293,7 +313,12 @@ class PyLinter(
         pylintrc: str | None = None,  # pylint: disable=unused-argument
     ) -> None:
         _ArgumentsManager.__init__(self, prog="pylint")
+        _BaselineManager.__init__(self)
         _MessageStateHandler.__init__(self, self)
+
+        self._baseline = {
+            ("functional.a.anomalous_backslash_escape", "anomalous-backslash-in-string"): 6,
+        }
 
         # Some stuff has to be done before initialization of other ancestors...
         # messages store / checkers / reporter / astroid manager
@@ -1257,6 +1282,11 @@ class PyLinter(
         """
         if confidence is None:
             confidence = interfaces.UNDEFINED
+
+        print(f"add_message({self.current_name} {self.current_file} {msgid} {line})")
+        if self.match_baseline(self.current_name, msgid):
+            return
+
         message_definitions = self.msgs_store.get_message_definitions(msgid)
         for message_definition in message_definitions:
             self._add_one_message(
