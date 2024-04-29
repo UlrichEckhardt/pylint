@@ -281,6 +281,44 @@ class _Baseline:
         return self._baseline
 
 
+class _BaselineChecker(checkers.BaseChecker):
+    name = "baseline"
+    msgs = {
+        "R9999": (
+            "Unmatched entry in baseline.",
+            "unmatched-entry-in-baseline",
+            (
+                "There is an exception in the baseline which isn't actually used. "
+                "Advance the baseline or manually remove the exception from the file."
+            ),
+        ),
+    }
+
+    def __init__(
+        self,
+        baseline: _Baseline,
+        linter: PyLinter
+    ) -> None:
+        super().__init__(linter)
+        self._baseline = baseline
+        self._linter = linter
+
+    def open(self) -> None:
+        print("""Called before visiting project (i.e. set of modules).""")
+
+    # Note: This is kind-of a hack, because this is called after
+    # evaluation of checkers has finished. This makes the the code
+    # here a bit brittle.
+    def close(self) -> None:
+        print("""Called after visiting project (i.e set of modules).""")
+        unmatched = self._baseline.fetch_unmatched_messages()
+        for name, msgid in unmatched.keys():
+            self._linter.add_message(
+                "unmatched-entry-in-baseline",
+                confidence=interfaces.HIGH
+            )
+
+
 # pylint: disable=too-many-instance-attributes,too-many-public-methods
 class PyLinter(
     _ArgumentsManager,
@@ -389,6 +427,7 @@ class PyLinter(
         self._ignore_paths: list[Pattern[str]] = []
 
         self.register_checker(self)
+        self.register_checker(_BaselineChecker(self._baseline, self))
 
     def load_default_plugins(self) -> None:
         checkers.initialize(self)
