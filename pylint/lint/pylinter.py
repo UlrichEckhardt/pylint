@@ -14,6 +14,7 @@ import tokenize
 import traceback
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator, Sequence
+from enum import Enum
 from io import TextIOWrapper
 from pathlib import Path
 from re import Pattern
@@ -249,6 +250,12 @@ MSGS: dict[str, MessageDefinitionTuple] = {
         {"scope": WarningScope.LINE},
     ),
 }
+
+class _BaselineMode(Enum):
+    DISABLED = "disabled"
+    CREATE = "create"  # create the baseline
+    APPLY = "apply"  # use the existing baseline
+    ADVANCE = "advance"  # remove fixed issues from the baseline, but don't add new ones
 
 class _Baseline:
     # TODO: use file name in addition to module name and message ID as key
