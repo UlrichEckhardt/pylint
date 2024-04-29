@@ -258,13 +258,16 @@ class _BaselineMode(Enum):
     ADVANCE = "advance"  # remove fixed issues from the baseline, but don't add new ones
 
 class _Baseline:
-    # TODO: use file name in addition to module name and message ID as key
+    _baseline_file: Path
+    _mode: _BaselineMode
+    # TODO: use file name in addition to module name and message ID as key?
     _baseline: dict[tuple[str, str], int] = {}
-
-    def init(self, baseline_file: Path) -> None:
-        pass
+    def init(self, baseline_file: Path, mode: _BaselineMode) -> None:
+        self._baseline_file = baseline_file
+        self._mode = mode
 
     def match(self, name, msgid) -> Bool:
+        # exclude R9999, the message ID we emit ourselves
         key = (name, msgid)
         try:
             self._baseline[key] -= 1
@@ -275,7 +278,8 @@ class _Baseline:
             return False
 
     def fetch_unmatched_messages(self):
-        pass
+        return self._baseline
+
 
 # pylint: disable=too-many-instance-attributes,too-many-public-methods
 class PyLinter(
