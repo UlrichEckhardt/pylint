@@ -15,3 +15,33 @@ def for_else_never(iterable):
         else:
             idontreturn()
         print(thing)
+
+def for_else_return(iterable):
+    """Test for-else with return"""
+
+    while True:
+        for thing in iterable:
+            break
+        else:
+            return
+        print(thing)
+
+def for_else_break(iterable):
+    """Test for-else with breaking from the outer loop"""
+
+    while True:
+        for thing in iterable:
+            break
+        else:
+            break
+        print(thing)
+
+def for_else_raise(iterable):
+    """Test for-else with throwing an exception"""
+
+    while True:
+        for thing in iterable:
+            break
+        else:
+            raise Exception
+        print(thing)
