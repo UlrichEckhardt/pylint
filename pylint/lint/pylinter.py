@@ -1334,7 +1334,7 @@ class PyLinter(
         if confidence is None:
             confidence = interfaces.UNDEFINED
 
-        print(f"add_message({self.current_name} {self.current_file} {msgid} {line})")
+        # print(f"add_message({self.current_name} {self.current_file} {msgid} {line})")
         if self._baseline.match(self.current_name, msgid):
             return
 
