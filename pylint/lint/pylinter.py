@@ -367,6 +367,7 @@ class PyLinter(
         # TODO: read this from a file
         self._baseline._baseline = {
             ("functional.a.anomalous_backslash_escape", "anomalous-backslash-in-string"): 6,
+            ("functional.a.anomalous_unicode_escape", "anomalous-unicode-escape-in-string"): 3,
         }
 
         # Some stuff has to be done before initialization of other ancestors...
