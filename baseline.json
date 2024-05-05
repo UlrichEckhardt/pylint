@@ -1,0 +1,8 @@
+{
+  "functional.a.anomalous_backslash_escape": {
+    "anomalous-backslash-in-string": 6
+  },
+  "functional.a.anomalous_unicode_escape": {
+    "anomalous-unicode-escape-in-string": 3
+  }
+}
