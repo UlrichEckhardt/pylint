@@ -262,7 +262,7 @@ class _Baseline:
     _baseline_file: Path
     _mode: _BaselineMode
     # TODO: use file name in addition to module name and message ID as key?
-    _baseline: dict[tuple[str, str], int]
+    _baseline: dict[str, dict[str, int]]
     def init(self, baseline_file: Path, mode: _BaselineMode) -> None:
         self._baseline_file = baseline_file
         self._mode = mode
