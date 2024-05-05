@@ -270,13 +270,12 @@ class _Baseline:
         if self._mode == _BaselineMode.DISABLED:
             return
         elif self._mode == _BaselineMode.CREATE:
-            with open(baseline_path, w) as f:
+            with open(baseline_file, w) as f:
                 json.dump(self._baseline, f)
             pass
         elif self._mode == _BaselineMode.APPLY:
-            pass
-            # with open(baseline_path) as f:
-            #     self._baseline = json.load(f)
+            with open(baseline_file) as f:
+                self._baseline = json.load(f)
         elif self._mode == _BaselineMode.ADVANCE:
             pass
         else:
@@ -396,16 +395,10 @@ class PyLinter(
         _MessageStateHandler.__init__(self, self)
 
         self._baseline = _Baseline()
-        self._baseline.init("baseline.json", _BaselineMode.DISABLED)
-        # TODO: read this from a file
-        self._baseline._baseline = {
-            "functional.a.anomalous_backslash_escape": {
-                "anomalous-backslash-in-string": 6
-            },
-            "functional.a.anomalous_unicode_escape": {
-                "anomalous-unicode-escape-in-string": 3
-            },
-        }
+        # TODO:
+        # - this should be initialized by the _BaselineChecker class
+        # - it should receive parameters from the commandline/configuration
+        self._baseline.init("baseline.json", _BaselineMode.APPLY)
 
         # Some stuff has to be done before initialization of other ancestors...
         # messages store / checkers / reporter / astroid manager
