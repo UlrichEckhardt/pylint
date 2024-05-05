@@ -270,9 +270,7 @@ class _Baseline:
         if self._mode == _BaselineMode.DISABLED:
             return
         elif self._mode == _BaselineMode.CREATE:
-            with open(baseline_file, w) as f:
-                json.dump(self._baseline, f)
-            pass
+            self._baseline = dict()
         elif self._mode == _BaselineMode.APPLY:
             with open(baseline_file) as f:
                 self._baseline = json.load(f)
@@ -285,7 +283,15 @@ class _Baseline:
         if self._mode == _BaselineMode.DISABLED:
             return False
         elif self._mode == _BaselineMode.CREATE:
-            pass
+            try:
+                module_baseline = self._baseline[name]
+            except KeyError:
+                self._baseline[name] = { msgid: 1 }
+                return
+            try:
+                module_baseline[msgid] += 1
+            except KeyError:
+                module_baseline[msgid] = 1
         elif self._mode == _BaselineMode.APPLY:
             # TODO: exclude R9999, the message ID we emit ourselves
             try:
