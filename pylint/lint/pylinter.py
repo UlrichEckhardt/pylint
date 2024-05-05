@@ -8,6 +8,7 @@ import argparse
 import collections
 import contextlib
 import functools
+import json
 import os
 import sys
 import tokenize
@@ -261,29 +262,60 @@ class _Baseline:
     _baseline_file: Path
     _mode: _BaselineMode
     # TODO: use file name in addition to module name and message ID as key?
-    _baseline: dict[tuple[str, str], int] = {}
+    _baseline: dict[tuple[str, str], int]
     def init(self, baseline_file: Path, mode: _BaselineMode) -> None:
         self._baseline_file = baseline_file
         self._mode = mode
 
+        if self._mode == _BaselineMode.DISABLED:
+            return
+        elif self._mode == _BaselineMode.CREATE:
+            with open(baseline_path, w) as f:
+                json.dump(self._baseline, f)
+            pass
+        elif self._mode == _BaselineMode.APPLY:
+            pass
+            # with open(baseline_path) as f:
+            #     self._baseline = json.load(f)
+        elif self._mode == _BaselineMode.ADVANCE:
+            pass
+        else:
+            assert(False)
+
     def match(self, name, msgid) -> Bool:
-        # exclude R9999, the message ID we emit ourselves
-        key = (name, msgid)
-        try:
-            self._baseline[key] -= 1
-            if self._baseline[key] == 0:
-                del self._baseline[key]
-            return True
-        except KeyError:
+        if self._mode == _BaselineMode.DISABLED:
             return False
+        elif self._mode == _BaselineMode.CREATE:
+            pass
+        elif self._mode == _BaselineMode.APPLY:
+            # TODO: exclude R9999, the message ID we emit ourselves
+            try:
+                module_baseline = self._baseline[name]
+            except KeyError:
+                return False
+            try:
+                module_baseline[msgid] -= 1
+                if module_baseline[msgid] == 0:
+                    del module_baseline[msgid]
+                return True
+            except KeyError:
+                return False
+        elif self._mode == _BaselineMode.ADVANCE:
+            pass
+        else:
+            assert(False)
 
     def fetch_unmatched_messages(self):
-        return self._baseline
+        for name in self._baseline:
+            for msgid in self._baseline[name]:
+                yield (name, msgid)
 
 
+# TODO: add parameters mode/filename here
 class _BaselineChecker(checkers.BaseChecker):
     name = "baseline"
     msgs = {
+        # TODO: Use "useless-suppression" instead?
         "R9999": (
             "Unmatched entry in baseline.",
             "unmatched-entry-in-baseline",
@@ -311,8 +343,7 @@ class _BaselineChecker(checkers.BaseChecker):
     # here a bit brittle.
     def close(self) -> None:
         print("""Called after visiting project (i.e set of modules).""")
-        unmatched = self._baseline.fetch_unmatched_messages()
-        for name, msgid in unmatched.keys():
+        for name, msgid in self._baseline.fetch_unmatched_messages():
             self._linter.add_message(
                 "unmatched-entry-in-baseline",
                 confidence=interfaces.HIGH
@@ -364,10 +395,15 @@ class PyLinter(
         _MessageStateHandler.__init__(self, self)
 
         self._baseline = _Baseline()
+        self._baseline.init("baseline.json", _BaselineMode.DISABLED)
         # TODO: read this from a file
         self._baseline._baseline = {
-            ("functional.a.anomalous_backslash_escape", "anomalous-backslash-in-string"): 6,
-            ("functional.a.anomalous_unicode_escape", "anomalous-unicode-escape-in-string"): 3,
+            "functional.a.anomalous_backslash_escape": {
+                "anomalous-backslash-in-string": 6
+            },
+            "functional.a.anomalous_unicode_escape": {
+                "anomalous-unicode-escape-in-string": 3
+            },
         }
 
         # Some stuff has to be done before initialization of other ancestors...
