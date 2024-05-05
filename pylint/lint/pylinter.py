@@ -307,8 +307,9 @@ class _Baseline:
 
     def fetch_unmatched_messages(self):
         for name in self._baseline:
-            for msgid in self._baseline[name]:
-                yield (name, msgid)
+            module_baseline = self._baseline[name]
+            for msgid in module_baseline:
+                yield (name, msgid, module_baseline[msgid])
 
 
 # TODO: add parameters mode/filename here
@@ -343,7 +344,7 @@ class _BaselineChecker(checkers.BaseChecker):
     # here a bit brittle.
     def close(self) -> None:
         print("""Called after visiting project (i.e set of modules).""")
-        for name, msgid in self._baseline.fetch_unmatched_messages():
+        for name, msgid, count in self._baseline.fetch_unmatched_messages():
             self._linter.add_message(
                 "unmatched-entry-in-baseline",
                 confidence=interfaces.HIGH
