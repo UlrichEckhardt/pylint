@@ -3,6 +3,10 @@
     "anomalous-backslash-in-string": 6
   },
   "functional.a.anomalous_unicode_escape": {
-    "anomalous-unicode-escape-in-string": 3
+    "locally-disabled": 2,
+    "anomalous-unicode-escape-in-string": 3,
+    "redundant-u-string-prefix": 3,
+    "useless-suppression": 1,
+    "suppressed-message": 3
   }
 }

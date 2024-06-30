@@ -280,6 +280,9 @@ class _Baseline:
             assert(False)
 
     def match(self, name, msgid) -> Bool:
+        # if msgid == 'useless-suppression':
+        #     return False
+
         if self._mode == _BaselineMode.DISABLED:
             return False
         elif self._mode == _BaselineMode.CREATE:
@@ -292,6 +295,7 @@ class _Baseline:
                 module_baseline[msgid] += 1
             except KeyError:
                 module_baseline[msgid] = 1
+            return False
         elif self._mode == _BaselineMode.APPLY:
             # TODO: exclude R9999, the message ID we emit ourselves
             try:
@@ -311,10 +315,21 @@ class _Baseline:
             assert(False)
 
     def fetch_unmatched_messages(self):
-        for name in self._baseline:
-            module_baseline = self._baseline[name]
-            for msgid in module_baseline:
-                yield (name, msgid, module_baseline[msgid])
+        if self._mode == _BaselineMode.DISABLED:
+            return
+        elif self._mode == _BaselineMode.CREATE:
+            with open(self._baseline_file, 'w') as f:
+                json.dump(self._baseline, f, indent=2)
+                f.write("\n")
+        elif self._mode == _BaselineMode.APPLY:
+            for name in self._baseline:
+                module_baseline = self._baseline[name]
+                for msgid in module_baseline:
+                    yield (name, msgid, module_baseline[msgid])
+        elif self._mode == _BaselineMode.ADVANCE:
+            pass
+        else:
+            assert(False)
 
 
 # TODO: add parameters mode/filename here
@@ -323,7 +338,7 @@ class _BaselineChecker(checkers.BaseChecker):
     msgs = {
         # TODO: Use "useless-suppression" instead?
         "R9999": (
-            "Unmatched entry in baseline.",
+            "Unmatched entry %s in baseline",
             "unmatched-entry-in-baseline",
             (
                 "There is an exception in the baseline which isn't actually used. "
